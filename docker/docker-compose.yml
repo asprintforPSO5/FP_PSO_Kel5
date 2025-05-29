@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  tasty-recipes-app:
+    container_name: tasty_recipes_app_dev
+    build:
+      context: .. 
+      dockerfile: ./docker/Dockerfile 
+    ports:
+      - "8080:80" 
+    volumes:
+     
+      - ../src:/app/src 
+      - ../public:/app/public
+    environment:
+      - NODE_ENV=development
+      # - VITE_API_URL=http://localhost:3000/api # (belum ada public url)
+    
