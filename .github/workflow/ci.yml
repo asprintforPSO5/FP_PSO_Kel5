@@ -1,0 +1,68 @@
+name: Tasty Recipes CI
+
+on:
+  push:
+    branches:
+      - deploy 
+  pull_request:
+    branches:
+      - deploy
+
+jobs:
+  build_test_analyze_package:
+    name: Build, Test, Analyze & Package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22' 
+          cache: 'npm' 
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Lint Code
+        run: npm run lint 
+
+    
+
+      - name: SonarQube Static Analysis
+        uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}         # Dari GitHub Secrets
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}   # Dari GitHub Secrets
+        with:
+          projectBaseDir: .
+          args: >
+            -Dsonar.projectKey=TastyRecipes_Kelompok5
+            -Dsonar.projectName="Tasty Recipes - Kelompok 5"
+            -Dsonar.sources=src
+            # -Dsonar.tests=tests # Jika ada folder tes
+            # -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info # Jika ada laporan coverage
+
+      - name: Login to Container Registry
+    
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ secrets.ACR_LOGIN_SERVER }} 
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+        
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          push: true 
+          tags: | # Contoh tagging
+            ${{ secrets.ACR_LOGIN_SERVER }}/tastyrecipes:${{ github.sha }}
+            ${{ secrets.ACR_LOGIN_SERVER }}/tastyrecipes:latest # Hati-hati dengan 'latest' di production
+         
+
+    
