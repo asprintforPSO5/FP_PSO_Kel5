@@ -1,7 +1,10 @@
 name: Tasty Recipes CD
 
 on:
-  push:
+workflow_run:
+    workflows: ["ci.yml"]
+    types:
+      - completed
     branches:
       - deploy 
 
