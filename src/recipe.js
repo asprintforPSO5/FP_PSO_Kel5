@@ -1,65 +1,133 @@
-export default [
-    {
-      id: 1,
-      category: "Meals",
-      cookTime: 150,
-      prepTime: 30,
-      totalTime: 210,
-      name: "Beet Wellington",
-      description:
-        "Gordon Ramsay's version of the classic steak dish – a showstopping centrepiece on a special occasions",
-      imageLink: "https://playswellwithbutter.com/wp-content/uploads/2020/12/Individual-Beef-Wellington-27.jpg",
-      username: "andrewtan"
+import axios from "axios";
+
+export default {
+    namespaced: true,
+    state() {
+        return {
+            recipes: [],
+            recipeDetail: {},
+        }
     },
-    {
-      id: 2,
-      category: "Lunch",
-      cookTime: 180,
-      prepTime: 30,
-      totalTime: 210,
-      name: "Napa Cabbage Kimchi",
-      description:
-        "this dish is so common and iconic among Koreans that we simply call it “kimchi.” When people talk about kimchi, this is the side dish they’re referring to, despite the fact that there are many kinds of kimchi in Korean cuisine, and many made with napa cabbage, too.",
-      imageLink: "https://www.koreanbapsang.com/wp-content/uploads/2019/11/DSC6782-4-1.jpg",
-      username: "junarampho"
+    getters: {},
+    mutations: {
+        setRecipeData(state, payload) {
+            state.recipes = payload
+        },
+        setRecipeDetail(state, payload) {
+            state.recipeDetail = payload
+        },
+        setNewRecipe(state, payload) {
+            state.recipes.push(payload)
+        }
     },
-    {
-      id: 3,
-      category: "Lunch",
-      cookTime: 15,
-      prepTime: 15,
-      totalTime: 30,
-      name: "Old-Fashion Potato Salad",
-      description:
-        "This potato salad recipe is for the traditional creamy type of potato salad, with eggs, celery, and relish. It's perfect for making ahead to let the flavors develop.",
-      imageLink:
-        "https://food.fnr.sndimg.com/content/dam/images/food/fullset/2011/6/3/1/FNM_070111-Insert-002_s4x3.jpg.rend.hgtvcom.616.462.suffix/1371597728929.jpeg",
-      username: "renatamoloek"
+    actions: {
+        async getRecipeData({commit}) {
+            try {
+                const { data } = await axios.get(
+                    "https://timedoorezra-default-rtdb.firebaseio.com/recipes.json")
+                
+                    const arr = []
+                    for (let key in data) {
+                        arr.push({id:key, ...data[key]})
+                    }
+                    commit("setRecipeData", arr)
+
+            } catch (err) {
+                console.log(err)
+            }
+        },
+        async getRecipeDetail({commit}, payload) {
+            try {
+                const { data } = await axios.get(`https://timedoorezra-default-rtdb.firebaseio.com/recipes/${payload}.json`)
+
+                commit("setRecipeDetail", data)
+            } catch (err) {
+                console.log(err)
+            }
+        },
+        async addNewRecipe({commit, rootState}, payload){
+            const newData = {
+                ...payload,
+                username: rootState.auth.userLogin.username,
+                createdAt: Date.now(),
+                likes: ["null"],
+                userId: rootState.auth.userLogin.userId,
+            }
+
+            try {
+                const { data } = await axios.post(
+                    `https://timedoorezra-default-rtdb.firebaseio.com/recipes.json?auth=${rootState.auth.token}`, newData)
+
+                commit("setNewRecipe", { id: data.name, ...newData})
+            } catch (err) {
+                console.log(err)
+            }
+        },
+
+        async deleteRecipe({ dispatch, rootState}, payload) {
+            try {
+                const { data } = await axios.delete(
+                    `https://timedoorezra-default-rtdb.firebaseio.com/recipes/${payload}.json?auth=${rootState.auth.token}`)
+                
+                await dispatch("getRecipeData")
+            } catch (err) {
+                console.log(err)
+            }
+        },
+
+                async toggleFavorite({ rootState, dispatch }, recipeId) {
+            // 1. Dapatkan userId dari pengguna yang sedang login
+            const userId = rootState.auth.userLogin.userId;
+            if (!userId) {
+                console.error("User not logged in!");
+                return; // Hentikan jika pengguna tidak login
+            }
+
+            // 2. Dapatkan data resep yang akan di-update dari Firebase
+            const token = rootState.auth.token;
+            const response = await axios.get(`https://timedoorezra-default-rtdb.firebaseio.com/recipes/${recipeId}.json?auth=${token}`);
+            const recipeData = response.data;
+
+            // 3. Inisialisasi 'likes' jika belum ada
+            if (!recipeData.likes || recipeData.likes.includes("null")) {
+                recipeData.likes = [];
+            }
+
+            // 4. Cek apakah user sudah pernah like, lalu tambahkan/hapus
+            const userIndex = recipeData.likes.indexOf(userId);
+            if (userIndex >= 0) {
+                // Jika sudah ada, hapus (unlike)
+                recipeData.likes.splice(userIndex, 1);
+            } else {
+                // Jika belum ada, tambahkan (like)
+                recipeData.likes.push(userId);
+            }
+
+            // 5. Update data resep di Firebase dengan data 'likes' yang baru
+            try {
+                await axios.patch(
+                    `https://timedoorezra-default-rtdb.firebaseio.com/recipes/${recipeId}.json?auth=${token}`,
+                    { likes: recipeData.likes } // Kirim hanya field 'likes' yang di-update
+                );
+
+                // 6. Refresh data resep di state agar UI terupdate
+                await dispatch("getRecipeDetail", recipeId);
+                await dispatch("getRecipeData"); // Refresh juga daftar resep utama
+            } catch (err) {
+                console.error("Error updating favorite status:", err);
+            }
+        },
+
+
+        async updateRecipe({ dispatch, rootState}, { id, newRecipe }) {
+            try {
+                const { data } = await axios.put(
+                    `https://timedoorezra-default-rtdb.firebaseio.com/recipes/${id}.json?auth=${rootState.auth.token}`, newRecipe)
+                
+                await dispatch("getRecipeData")
+            } catch (err) {
+                console.log(err)
+            }
+        }
     },
-    {
-      id: 4,
-      category: "Meals",
-      cookTime: 45,
-      prepTime: 15,
-      totalTime: 60,
-      name: "Churros",
-      description:
-        "This churros recipe is astonishingly easy, and makes a truly great churros that’s hot and crisp on the outside, fluffy on the inside.",
-      imageLink:
-        "https://bellyfull.net/wp-content/uploads/2021/03/Churros-blog-3.jpg",
-      username: "anthonio"
-    },
-    {
-      id: 5,
-      category: "Meals",
-      cookTime: 5,
-      prepTime: 2,
-      totalTime: 7,
-      name: "Melted Cheese Ramyun",
-      description:
-        "Popular in Korea, melted cheese ramyun is an easy way to cut through the intense spice of Shin Ramyun and adds a delicious creamy flavour!",
-      imageLink:
-        "https://www.dinnerwithjulie.com/wp-content/uploads/2015/02/Screen-shot-2015-02-08-at-11.28.46-PM.png",
-      username: "anthonio"
-    },
-];
+}
