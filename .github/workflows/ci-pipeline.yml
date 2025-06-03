@@ -1,0 +1,41 @@
+# Nama workflow yang akan muncul di tab "Actions" di GitHub
+name: Tasty Recipes CI/CD
+
+# Pemicu (trigger): Kapan workflow ini harus dijalankan
+on:
+  push:
+    branches: [ "main" ] # Jalankan setiap kali ada push ke branch "main"
+  pull_request:
+    branches: [ "main" ] # Jalankan juga saat ada pull request ke "main"
+
+# Daftar pekerjaan (jobs) yang akan dieksekusi
+jobs:
+  # Kita definisikan satu pekerjaan bernama "build"
+  build:
+    # Menentukan jenis sistem operasi untuk menjalankan pekerjaan ini
+    runs-on: ubuntu-latest
+
+    # Langkah-langkah (steps) yang akan dieksekusi secara berurutan
+    steps:
+      # Langkah 1: Mengunduh (checkout) kode dari repositori Anda
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Langkah 2: Menyiapkan lingkungan Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22' # Gunakan versi Node yang sesuai
+
+      # Langkah 3: Menginstal semua dependencies proyek
+      # 'yarn install' sesuai dengan setup proyek Anda
+      - name: Install Dependencies
+        run: yarn install
+
+      # Langkah 4: Menjalankan proses build
+      # 'yarn build' akan mengompilasi aplikasi Vue.js Anda
+      - name: Build Project
+        run: yarn build
+
+      # Di masa depan, Anda bisa menambahkan langkah lain di sini
+      # seperti code linting, vulnerability check, atau deployment.
