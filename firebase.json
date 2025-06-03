@@ -1,6 +1,7 @@
 {
   "hosting": {
-    "public": "dist",
+    "site": "tasty-receipe",
+    "public": "dist",      
     "ignore": [
       "firebase.json",
       "**/.*",
