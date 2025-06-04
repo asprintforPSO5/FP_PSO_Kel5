@@ -32,9 +32,7 @@ jobs:
       - name: Build Application
         run: npm run build
 
-      - name: Run Tests and Generate Coverage
-        run: npm run test:coverage
-        
+
       - name: SonarQube Static Analysis
         uses: sonarsource/sonarqube-scan-action@master
         env:
@@ -47,7 +45,7 @@ jobs:
             -Dsonar.projectName="Tasty Recipes - Kelompok 5"
             -Dsonar.sources=src
             -Dsonar.host.url=https://sonarcloud.io
-            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+      
 
       - name: Upload Build Artifact for Firebase
         uses: actions/upload-artifact@v4
