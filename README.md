@@ -1,3 +1,3 @@
 # TimeDoor (Pro)ject
 
-Ini adalah config untuk trigger ci cd sampai bisa deploy ke web 
+Ini adalah config untuk trigger ci cd sampai bisa deploy ke web firebase hosting 
