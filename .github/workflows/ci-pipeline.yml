@@ -37,5 +37,18 @@ jobs:
       - name: Build Project
         run: yarn build
 
-      # Di masa depan, Anda bisa menambahkan langkah lain di sini
-      # seperti code linting, vulnerability check, atau deployment.
+      # --- Langkah Baru untuk SonarCloud ---
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Token bawaan GitHub
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}    # Secret yang baru saja Anda buat di GitHub
+        with:
+          args: >
+            -Dsonar.organization=miqbalby
+            -Dsonar.projectKey=MIqbalBY_FP_PSO_Kel5
+            # Anda bisa menambahkan parameter lain di sini jika diperlukan
+            # Misalnya, untuk menunjukkan letak source code jika tidak standar:
+            # -Dsonar.sources=src
+            # Jika Anda memiliki laporan test coverage (misalnya dari Jest atau Vitest), 
+            # Anda juga bisa menentukannya di sini agar SonarCloud bisa membacanya.
