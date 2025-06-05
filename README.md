@@ -19,8 +19,8 @@ Ini adalah config untuk trigger ci cd sampai bisa deploy ke web firebase hosting
 
 1. **Clone repo**
     ```sh
-    git clone https://github.com/username/TimeDoor-Project.git
-    cd TimeDoor-Project
+    git clone [https://github.com/EzraBimantara/FP_PSO_Kel5.git](https://github.com/EzraBimantara/FP_PSO_Kel5.git) # Ganti dengan URL repositori Anda
+    cd FP_PSO_Kel5
     ```
 
 2. **Install dependencies**
@@ -28,10 +28,10 @@ Ini adalah config untuk trigger ci cd sampai bisa deploy ke web firebase hosting
     npm ci
     ```
 
-3. **Buat file `.env`**
+3. **Buat file `.env` (untuk deploy lokal)**
     ```
     VITE_FIREBASE_AUTH_DOMAIN=...
-    VITE_FIREBASE_DATABASE_URL=...
+    VITE_FIREBASE_DATABASE_URL=..
     VITE_FIREBASE_PROJECT_ID=...
     VITE_FIREBASE_STORAGE_BUCKET=...
     VITE_FIREBASE_MESSAGING_SENDER_ID=...
@@ -60,7 +60,7 @@ Ini adalah config untuk trigger ci cd sampai bisa deploy ke web firebase hosting
 - **Build aplikasi (`npm run build`)**
 - **Deploy ke Firebase Hosting menggunakan Firebase CLI**
 
-### 3. **Secrets yang Dibutuhkan**
+### 3. **Secrets yang Dibutuhkan (tambakan juga secret yang ada di .env)**
 Tambahkan secrets berikut di GitHub repo:
 - `GCP_SA_KEY` : Service Account Key Google Cloud (JSON)
 - `GCP_PROJECT_ID` : Project ID Google Cloud
