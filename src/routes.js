@@ -9,7 +9,8 @@ import EditRecipePage from "./components/pages/EditRecipePage.vue"
 import Cookies from "js-cookie"
 import { store } from "./store/index"
 
-const checkAuth = () => {
+// 1. Ubah fungsi checkAuth menjadi fungsi async
+const checkAuth = async () => {
     const jwtCookie = Cookies.get("jwt")
     const expirationDate = Cookies.get("tokenExpirationDate")
     const userId = Cookies.get("UID")
@@ -20,7 +21,8 @@ const checkAuth = () => {
                 idToken: jwtCookie,
                 expiresIn: expirationDate,
             })
-            store.dispatch("auth/getUser", userId)
+            // 2. Tambahkan 'await' di sini untuk menunggu proses getUser selesai
+            await store.dispatch("auth/getUser", userId)
             return true
         } else {
             store.commit("auth/setUserLogout")
@@ -32,27 +34,44 @@ const checkAuth = () => {
 }
 
 export const routes = [
-    { path: "/", name: "home", component: HomePage, 
-        beforeEnter: () => {
-            checkAuth()
+    {
+        path: "/",
+        name: "home",
+        component: HomePage,
+        // 3. Ubah 'beforeEnter' menjadi async dan await checkAuth
+        beforeEnter: async (to, from, next) => {
+            await checkAuth()
+            next()
         }
     },
     { path: "/login", name: "login", component: LoginPage },
     { path: "/signup", name: "signup", component: SignupPage },
-    { path: "/recipe/:id", name: "detailPage", component: DetailPage },
-    { path: "/user/:component", name: "userPage", component: UserPage,
-        beforeEnter: (to, from, next) => {
-            checkAuth() ? next() : next({ name: "login" })
+    { path: "/recipe/:id", name: "detailPage", component: DetailPage,
+        // 4. Lakukan hal yang sama untuk rute yang memerlukan login
+        beforeEnter: async (to, from, next) => {
+            await checkAuth()
+            next()
         }
-     },
-     { path: "/new-recipe", name: "newRecipePage", component: NewRecipePage,
-        beforeEnter: (to, from, next) => {
-            checkAuth() ? next() : next({ name: "login" })
+    },
+    {
+        path: "/user/:component", name: "userPage", component: UserPage,
+        beforeEnter: async (to, from, next) => {
+            const isAuth = await checkAuth()
+            isAuth ? next() : next({ name: "login" })
         }
-     },
-     { path: "/edit-recipe/:id", name: "editRecipePage", component: EditRecipePage,
-        beforeEnter: (to, from, next) => {
-            checkAuth() ? next() : next({ name: "login" })
+    },
+    {
+        path: "/new-recipe", name: "newRecipePage", component: NewRecipePage,
+        beforeEnter: async (to, from, next) => {
+            const isAuth = await checkAuth()
+            isAuth ? next() : next({ name: "login" })
         }
-     },
+    },
+    {
+        path: "/edit-recipe/:id", name: "editRecipePage", component: EditRecipePage,
+        beforeEnter: async (to, from, next) => {
+            const isAuth = await checkAuth()
+            isAuth ? next() : next({ name: "login" })
+        }
+    },
 ]
