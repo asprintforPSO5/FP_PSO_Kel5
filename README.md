@@ -5,7 +5,7 @@ Dokumen ini adalah panduan lengkap untuk proyek "Tasty Recipes", mencakup setup 
 ---
 
 ### **Link Penting**
-* **[Dokumentasi Workflow Error & Fix](https://docs.google.com/document/d/1R3basPKRNH7FpCWSepo-N0FijlgODOAqzrsVq6TEmvk/edit?usp=sharing)**
+* **[Dokumentasi Workflow Error & Fix Lengkap](https://docs.google.com/document/d/1R3basPKRNH7FpCWSepo-N0FijlgODOAqzrsVq6TEmvk/edit?usp=sharing)**
 
 ---
 
