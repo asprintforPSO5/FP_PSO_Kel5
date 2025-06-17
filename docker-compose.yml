@@ -1,0 +1,18 @@
+version: '3.8' # Versi docker-compose
+
+services:
+  tasty-recipes-app: # Nama layanan Anda
+    image: tasty-recipes-app-image # Nama image yang akan digunakan atau dibuat
+    build:
+      context: . # Direktori tempat Dockerfile berada
+      dockerfile: Dockerfile # Nama Dockerfile Anda
+    ports:
+      - "8080:80" # Map port 8080 di host ke port 80 di container
+    # Anda bisa menambahkan 'volumes' atau 'environment' jika perlu,
+    # seperti yang terlihat di slide Anda jika ada konfigurasi dinamis.
+    # Untuk frontend statis yang sudah di-build, ini mungkin tidak diperlukan.
+    volumes: # Contoh dari slide Anda, mungkin tidak semua relevan untuk frontend murni
+      - ./src:/app/src # Sinkronisasi folder src untuk development (tidak ideal untuk image produksi)
+      - ./public:/app/public # Sinkronisasi folder public
+    environment: # Contoh dari slide Anda
+      - NODE_ENV=development
