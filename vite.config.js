@@ -15,4 +15,11 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  test: {
+    coverage:{
+      reporter: ['text', 'lcov'], 
+      reportsDirectory: './coverage', 
+      include: ['src/**/*.{js,vue}']
+    }
+  },
 })
