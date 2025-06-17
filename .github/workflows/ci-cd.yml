@@ -30,10 +30,9 @@ jobs:
         run: npm ci --legacy-peer-deps
       
       - name: Run Unit Tests
-        run: npx vitest run --environment jsdom
+        run: npx vitest run --coverage --environment jsdom
 
-      - name: Build Application
-        run: npm run build
+   
 
 
       - name: SonarQube Static Analysis
@@ -48,6 +47,10 @@ jobs:
             -Dsonar.projectName="Tasty Recipes - Kelompok 5"
             -Dsonar.sources=src
             -Dsonar.host.url=https://sonarcloud.io
+            -Dsoner.javascript.lcov.reportPaths=coverage/lcov.info
+
+      - name: Build Application
+        run: npm run build
       
 
       - name: Upload Build Artifact for Firebase
