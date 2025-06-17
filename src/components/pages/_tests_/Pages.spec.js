@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, shallowMount } from '@vue/test-utils'
 import SignupPage from '../SignupPage.vue'
 import LoginPage from '../LoginPage.vue'
@@ -12,7 +12,10 @@ import DetailPage from '../DetailPage.vue'
 import EditRecipePage from '../EditRecipePage.vue'
 import HomePage from '../HomePage.vue'
 import UserPage from '../UserPage.vue'
-
+import auth from '../../../store/auth.js'
+import { Store } from 'vuex'
+import recipe from '../../../store/recipe'
+import { store } from '../../../store/index.js'
 
 
 // Mock child components
@@ -31,16 +34,21 @@ const mockRecipeDetail = {
   username: 'Chef Budi',
   imageLink: 'https://example.com/nasgor.jpg'
 }
-vi.mock('vuex', () => ({
-  useStore: () => ({
-    dispatch: dispatchMock,
-    state: {
-      recipe: {
-        recipeDetail: mockRecipeDetail
+vi.mock('vuex', async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    useStore: () => ({
+      dispatch: dispatchMock,
+      state: {
+        recipe: {
+          recipeDetail: mockRecipeDetail
+        }
       }
-    }
-  })
-}))
+    }),
+    createStore: actual.createStore // tambahkan ini!
+  }
+})
 
 // Mock useRouter agar selalu mengembalikan objek dengan push mock
 const pushMock = vi.fn()
@@ -56,6 +64,19 @@ vi.mock('vue-router', async (importOriginal) => {
     })
   }
 })
+
+vi.mock('axios', () => ({
+  default: {
+    post: vi.fn(() => Promise.resolve({ data: { idToken: 'token', expiresIn: '3600', localId: 'uid' } })),
+    get: vi.fn(() => Promise.resolve({ data: { key1: { userId: 'uid', name: 'Test' } } }))
+  }
+}))
+vi.mock('js-cookie', () => ({
+  default: {
+    set: vi.fn(),
+    remove: vi.fn()
+  }
+}))
 
 describe('SignupPage.vue', () => {
   it('renders signup form', () => {
@@ -205,4 +226,86 @@ describe('UserPage.vue', () => {
     expect(wrapper.html()).toContain('user-menu-stub')
     
   })
+})
+
+describe('auth.js', () => {
+  let state
+  beforeEach(() => {
+    state = auth.state()
+  })
+
+  it('setToken mutation', () => {
+    auth.mutations.setToken(state, { idToken: 'abc', expiresIn: 123 })
+    expect(state.token).toBe('abc')
+    expect(state.tokenExpirationDate).toBe(123)
+  })
+
+  it('setUserLogin mutation', () => {
+    auth.mutations.setUserLogin(state, { userData: { name: 'A' }, loginStatus: true })
+    expect(state.userLogin).toEqual({ name: 'A' })
+    expect(state.isLogin).toBe(true)
+  })
+
+  it('setUserLogout mutation', () => {
+    state.token = 'abc'
+    state.userLogin = { name: 'A' }
+    state.isLogin = true
+    state.tokenExpirationDate = 123
+    auth.mutations.setUserLogout(state)
+    expect(state.token).toBe(null)
+    expect(state.userLogin).toEqual({})
+    expect(state.isLogin).toBe(false)
+    expect(state.tokenExpirationDate).toBe(null)
+  })
+
+  it('getRegisterData action', async () => {
+    const commit = vi.fn()
+    const dispatch = vi.fn(() => Promise.resolve())
+    await auth.actions.getRegisterData({ commit, dispatch }, { email: 'a', password: 'b', firstname: 'f', lastname: 'l', username: 'u', imageLink: 'img' })
+    expect(commit).toHaveBeenCalledWith('setToken', expect.any(Object))
+    expect(dispatch).toHaveBeenCalledWith('addNewUser', expect.any(Object))
+  })
+
+  it('addNewUser action', async () => {
+    const commit = vi.fn()
+    const stateObj = { token: 'tok' }
+    await auth.actions.addNewUser({ commit, state: stateObj }, { userId: 'uid' })
+    expect(commit).toHaveBeenCalledWith('setUserLogin', { userData: { userId: 'uid' }, loginStatus: true })
+  })
+
+  it('getLoginData action', async () => {
+    const commit = vi.fn()
+    const dispatch = vi.fn(() => Promise.resolve({ userId: 'uid' }))
+    const result = await auth.actions.getLoginData({ commit, dispatch }, { email: 'a', password: 'b' })
+    expect(commit).toHaveBeenCalledWith('setToken', expect.any(Object))
+    expect(dispatch).toHaveBeenCalledWith('getUser', 'uid')
+    expect(result).toEqual({ userId: 'uid' })
+  })
+
+  it('getUser action', async () => {
+    const commit = vi.fn()
+    const result = await auth.actions.getUser({ commit }, 'uid')
+    expect(commit).toHaveBeenCalledWith('setUserLogin', expect.objectContaining({ loginStatus: true }))
+    expect(result).toEqual(expect.objectContaining({ userId: 'uid' }))
+  })
+})
+
+describe('store/index.js', () => {
+  it('should create a Vuex store with recipe and auth modules', () => {
+    expect(store).toBeInstanceOf(Store)
+    expect(store.hasModule('recipe')).toBe(true)
+    expect(store.hasModule('auth')).toBe(true)
+  })
+
+  it('should use the correct modules', () => {
+    expect(store._modulesNamespaceMap['recipe/']._rawModule).toBe(recipe)
+    expect(store._modulesNamespaceMap['auth/']._rawModule).toBe(auth)
+  })
+})
+
+Object.defineProperty(import.meta, 'env', {
+  value: {
+    VITE_FIREBASE_API_KEY_REGISTER: 'reg',
+    VITE_FIREBASE_API_KEY_LOGIN: 'login'
+  }
 })
