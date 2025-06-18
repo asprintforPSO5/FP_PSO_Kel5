@@ -11,6 +11,6 @@
 <template>
     <ul class="list-group">
         <RecipeFormHeader />
-        <RecipeFormBody :isEdit="isEdit" :data="{detailData}"/>
+        <RecipeFormBody :isEdit="isEdit" :data="detailData" />
     </ul>
 </template>
