@@ -5,7 +5,7 @@ import LoginPage from '../LoginPage.vue'
 import NewRecipePage from '../NewRecipePage.vue'
 import RecipeFormBody from '../../recipeForm/RecipeFormBody.vue'
 import { createStore } from 'vuex'
-import { createRouter, createMemoryHistory } from 'vue-router'
+import { createRouter, createMemoryHistory, createWebHistory } from 'vue-router'
 import RecipeDescription from '../../detail/RecipeDescription.vue'
 import RecipeDetail from '../../detail/RecipeDetail.vue'
 import DetailPage from '../DetailPage.vue'
@@ -16,6 +16,12 @@ import auth from '../../../store/auth.js'
 import { Store } from 'vuex'
 import recipe from '../../../store/recipe'
 import { store } from '../../../store/index.js'
+import WebFooter from '../../footer/WebFooter.vue'
+import SignupMenu from '../../header/SignupMenu.vue'
+import { RouterLinkStub } from '@vue/test-utils'
+import WebHeader from '../../header/WebHeader.vue'
+
+
 
 
 // Mock child components
@@ -308,4 +314,74 @@ Object.defineProperty(import.meta, 'env', {
     VITE_FIREBASE_API_KEY_REGISTER: 'reg',
     VITE_FIREBASE_API_KEY_LOGIN: 'login'
   }
+})
+
+
+describe('WebFooter.vue', () => {
+  it('seharusnya menampilkan teks copyright', () => {
+    const wrapper = mount(WebFooter);
+    expect(wrapper.text()).toContain('ⓒ2022 Tasty Recipe, Inc');
+  });
+
+  it('seharusnya memiliki ikon sosial media', () => {
+    const wrapper = mount(WebFooter);
+    const instagramIcon = wrapper.find('.fa-square-instagram');
+    expect(instagramIcon.exists()).toBe(true);
+  });
+});
+
+describe('SignupMenu.vue', () => {
+  it('renders correctly', () => {
+    const wrapper = mount(SignupMenu, {
+      global: {
+        stubs: {
+          RouterLink: RouterLinkStub
+        }
+      }
+    })
+
+    // Basic existence check
+    expect(wrapper.exists()).toBe(true)
+
+    // Verify router link
+    const link = wrapper.findComponent(RouterLinkStub)
+    expect(link.exists()).toBe(true)
+    expect(link.props().to).toBe('/signup')
+
+    // Verify content
+    expect(link.text()).toContain('Sign Up')
+    expect(link.find('i.fa-user').exists()).toBe(true)
+  })
+})
+
+describe('WebHeader.vue', () => {
+  it('renders header component correctly', () => {
+    const wrapper = mount(WebHeader, {
+      global: {
+        stubs: {
+          RouterLink: RouterLinkStub,
+          NavigationBar: true // Stub child component
+        }
+      }
+    })
+
+    // Basic existence check
+    expect(wrapper.exists()).toBe(true)
+
+    // Check header element exists with correct classes
+    const header = wrapper.find('header')
+    expect(header.exists()).toBe(true)
+    expect(header.classes()).toContain('shadow-sm')
+    expect(header.classes()).toContain('bg-white')
+    expect(header.classes()).toContain('fixed-top')
+
+    // Check logo link exists
+    const logoLink = wrapper.findComponent(RouterLinkStub)
+    expect(logoLink.exists()).toBe(true)
+    expect(logoLink.props().to).toBe('/')
+
+    // Check NavigationBar component exists
+    const navBar = wrapper.findComponent({ name: 'NavigationBar' })
+    expect(navBar.exists()).toBe(true)
+  })
 })
